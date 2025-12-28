@@ -1,6 +1,8 @@
 import json
 import os
+import traceback
 from typing import Dict, Optional
+from collections import OrderedDict
 
 TOKEN_FILE = "./data/token.json"
 
@@ -11,19 +13,19 @@ def load_tokens() -> Dict[str, str]:
             with open(TOKEN_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
-            pass
+            traceback.print_exc()
 
-    initial_tokens = {
-        "bohe_sign_token": "",
-        "linux_do_connect_token": "",
-        "linux_do_token": ""
-    }
+    initial_tokens = OrderedDict([
+        ("bohe_sign_token", ""),
+        ("linux_do_connect_token", ""),
+        ("linux_do_token", "")
+    ])
     try:
         with open(TOKEN_FILE, "w", encoding="utf-8") as f:
             json.dump(initial_tokens, f, indent=4, ensure_ascii=False)
         return initial_tokens
     except Exception:
-        pass
+        traceback.print_exc()
     return {}
 
 
@@ -41,10 +43,9 @@ def save_tokens(bohe_token: Optional[str] = None,
 
     try:
         with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-            json.dump(tokens, f, indent=4, ensure_ascii=False)
+            json.dump(tokens, f, indent=4, ensure_ascii=False, sort_keys=False)
     except Exception as e:
-        print(f"Error saving tokens: {e}")
+        traceback.print_exc()
 
 def get_token(key: str) -> Optional[str]:
-    tokens = load_tokens()
-    return tokens.get(key)
+    return load_tokens().get(key)

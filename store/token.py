@@ -1,8 +1,7 @@
 import json
 import os
-import traceback
-from typing import Dict, Optional
 from collections import OrderedDict
+from typing import Dict, Optional
 
 TOKEN_FILE = "./data/token.json"
 
@@ -13,39 +12,40 @@ def load_tokens() -> Dict[str, str]:
             with open(TOKEN_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
-            traceback.print_exc()
+            pass
 
     initial_tokens = OrderedDict([
         ("bohe_sign_token", ""),
+        ("bohe_api_token", ""),
         ("linux_do_connect_token", ""),
         ("linux_do_token", "")
     ])
-    try:
-        with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-            json.dump(initial_tokens, f, indent=4, ensure_ascii=False)
-        return initial_tokens
-    except Exception:
-        traceback.print_exc()
-    return {}
+
+    os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
+    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
+        json.dump(initial_tokens, f, indent=4, ensure_ascii=False)
+    return initial_tokens
 
 
-def save_tokens(bohe_token: Optional[str] = None,
+def save_tokens(bohe_sign_token: Optional[str] = None,
+                bohe_api_token: Optional[str] = None,
                 linux_do_connect_token: Optional[str] = None,
                 linux_do_token: Optional[str] = None) -> None:
     tokens = load_tokens()
-    
-    if bohe_token:
-        tokens["bohe_sign_token"] = bohe_token
+
+    if bohe_sign_token:
+        tokens["bohe_sign_token"] = bohe_sign_token
+    if bohe_api_token:
+        tokens["bohe_api_token"] = bohe_api_token
     if linux_do_connect_token:
         tokens["linux_do_connect_token"] = linux_do_connect_token
     if linux_do_token:
         tokens["linux_do_token"] = linux_do_token
 
-    try:
-        with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-            json.dump(tokens, f, indent=4, ensure_ascii=False, sort_keys=False)
-    except Exception as e:
-        traceback.print_exc()
+    os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
+    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
+        json.dump(tokens, f, indent=4, ensure_ascii=False, sort_keys=False)
+
 
 def get_token(key: str) -> Optional[str]:
     return load_tokens().get(key)

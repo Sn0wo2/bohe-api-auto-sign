@@ -1,0 +1,16 @@
+services:
+  bohe-auto-sign:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bohe-auto-sign
+    restart: unless-stopped
+    ports:
+      # Web 控制面板端口
+      - "8000:8000"
+    volumes:
+      # 持久化数据目录，用于存储 token.json、config.json、log.json
+      - ./data:/app/data
+    # 可选：设置时区
+    environment:
+      - TZ=Asia/Shanghai

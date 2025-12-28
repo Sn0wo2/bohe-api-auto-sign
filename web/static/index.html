@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="薄荷签到控制面板 - 管理自动签到任务">
+    <title>薄荷签到控制面板</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Toast 通知容器 -->
+    <div id="toast-container"></div>
+
+    <!-- 页面头部 -->
+    <header class="header">
+        <div class="container">
+            <h1 class="header-title">🌿 薄荷签到控制面板</h1>
+            <p class="header-subtitle">自动签到管理系统</p>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="container">
+        <!-- 状态概览卡片 -->
+        <section class="card" id="status-card">
+            <h2 class="card-title">📊 状态概览</h2>
+            <div class="status-grid">
+                <div class="status-item" id="token-status-item">
+                    <div class="status-icon" id="token-status-icon">⏳</div>
+                    <div class="status-label">Token 状态</div>
+                    <div class="status-value" id="token-status-text">检查中...</div>
+                </div>
+                <div class="status-item" id="sign-status-item">
+                    <div class="status-icon" id="sign-status-icon">⏳</div>
+                    <div class="status-label">今日签到</div>
+                    <div class="status-value" id="sign-status-text">检查中...</div>
+                </div>
+                <div class="status-item" id="schedule-status-item">
+                    <div class="status-icon" id="schedule-status-icon">⏳</div>
+                    <div class="status-label">定时任务</div>
+                    <div class="status-value" id="schedule-status-text">检查中...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Token 管理卡片 -->
+        <section class="card" id="token-card">
+            <h2 class="card-title">🔑 Token 管理</h2>
+            <div class="form-group">
+                <label for="linux-do-token" class="form-label">Linux.do Token</label>
+                <div class="input-group">
+                    <input 
+                        type="password" 
+                        id="linux-do-token" 
+                        class="form-input" 
+                        placeholder="请输入 Linux.do Token..."
+                        autocomplete="off"
+                    >
+                    <button type="button" class="btn btn-icon" id="toggle-token-visibility" title="显示/隐藏">
+                        👁️
+                    </button>
+                </div>
+                <p class="form-hint">Token 用于获取薄荷签到凭证</p>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="save-token-btn">
+                    <span class="btn-text">保存 Token</span>
+                    <span class="btn-loading" style="display: none;">保存中...</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="refresh-token-btn">
+                    <span class="btn-text">刷新薄荷 Token</span>
+                    <span class="btn-loading" style="display: none;">刷新中...</span>
+                </button>
+            </div>
+            <div class="token-info" id="token-info" style="display: none;">
+                <div class="token-info-item">
+                    <span class="token-info-label">Linux.do Token:</span>
+                    <span class="token-info-value" id="linux-do-token-masked">-</span>
+                </div>
+                <div class="token-info-item">
+                    <span class="token-info-label">薄荷 Token:</span>
+                    <span class="token-info-value" id="bohe-token-masked">-</span>
+                    <span class="token-info-status" id="bohe-token-status"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 签到操作卡片 -->
+        <section class="card" id="sign-card">
+            <h2 class="card-title">✅ 签到操作</h2>
+            <div class="sign-action">
+                <button type="button" class="btn btn-large btn-primary" id="sign-now-btn">
+                    <span class="btn-text">🎯 立即签到</span>
+                    <span class="btn-loading" style="display: none;">签到中...</span>
+                </button>
+            </div>
+            <div class="sign-info" id="sign-info">
+                <div class="sign-info-item">
+                    <span class="sign-info-label">上次签到时间:</span>
+                    <span class="sign-info-value" id="last-sign-time">-</span>
+                </div>
+                <div class="sign-info-item">
+                    <span class="sign-info-label">连续签到天数:</span>
+                    <span class="sign-info-value" id="continuous-days">-</span>
+                </div>
+                <div class="sign-info-item">
+                    <span class="sign-info-label">累计签到次数:</span>
+                    <span class="sign-info-value" id="total-signs">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 定时任务卡片 -->
+        <section class="card" id="schedule-card">
+            <h2 class="card-title">⏰ 定时签到</h2>
+            <div class="schedule-config">
+                <div class="schedule-row">
+                    <div class="form-group">
+                        <label for="schedule-time" class="form-label">签到时间</label>
+                        <input 
+                            type="time" 
+                            id="schedule-time" 
+                            class="form-input form-input-time"
+                            value="08:00"
+                        >
+                    </div>
+                    <div class="schedule-toggle">
+                        <label class="toggle">
+                            <input type="checkbox" id="schedule-enabled">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label" id="schedule-toggle-label">未启用</span>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" id="save-schedule-btn">
+                        <span class="btn-text">保存设置</span>
+                        <span class="btn-loading" style="display: none;">保存中...</span>
+                    </button>
+                    <button type="button" class="btn btn-danger" id="delete-schedule-btn">
+                        <span class="btn-text">删除任务</span>
+                        <span class="btn-loading" style="display: none;">删除中...</span>
+                    </button>
+                </div>
+                <div class="schedule-info" id="schedule-info" style="display: none;">
+                    <div class="schedule-info-item">
+                        <span class="schedule-info-label">下次执行:</span>
+                        <span class="schedule-info-value" id="next-run-time">-</span>
+                    </div>
+                    <div class="schedule-info-item">
+                        <span class="schedule-info-label">上次执行:</span>
+                        <span class="schedule-info-value" id="last-run-time">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 签到日志卡片 -->
+        <section class="card" id="logs-card">
+            <h2 class="card-title">📋 签到日志</h2>
+            <div class="logs-container">
+                <div class="logs-table-wrapper">
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>状态</th>
+                                <th>触发方式</th>
+                                <th>消息</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody">
+                            <tr class="logs-loading">
+                                <td colspan="4">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="logs-pagination" id="logs-pagination">
+                    <button type="button" class="btn btn-small btn-secondary" id="logs-prev-btn" disabled>
+                        上一页
+                    </button>
+                    <span class="logs-page-info" id="logs-page-info">第 1 页</span>
+                    <button type="button" class="btn btn-small btn-secondary" id="logs-next-btn" disabled>
+                        下一页
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页面底部 -->
+    <footer class="footer">
+        <div class="container">
+            <p>薄荷签到控制面板 &copy; 2024</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

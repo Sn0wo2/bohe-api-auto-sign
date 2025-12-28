@@ -1,7 +1,7 @@
 [project]
 name = "bohe-api-auto-sign"
-version = "0.0.0"
-description = "Auto sign bohe api"
+version = "0.1.0"
+description = "Auto sign bohe api with web control panel"
 authors = [
     { name = "Sn0wo2" }
 ]
@@ -9,7 +9,10 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "linux-do-connect-token (==0.0.2b2)"
+    "linux-do-connect-token==0.0.2b2",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "apscheduler>=3.10.0",
 ]
 
 

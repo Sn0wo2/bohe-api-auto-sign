@@ -23,8 +23,8 @@ RUN pip install poetry==$POETRY_VERSION
 # 优化构建缓存：先复制依赖文件
 COPY pyproject.toml poetry.lock* ./
 
-# 安装项目依赖（不安装开发依赖）
-RUN poetry install --no-root --only main
+# 安装项目依赖
+RUN poetry install --no-root
 
 # 复制项目源代码
 COPY . .

@@ -1,28 +1,30 @@
+import os
 import traceback
 from http import HTTPStatus
 from urllib.parse import urlparse, parse_qs
 from curl_cffi import requests, Response
 from store.token import load_tokens, save_tokens
-from linux_do_connect import LinuxDoConnect
+from linux_do_connect import LinuxDoConnect, CONNECT_KEY, IMPERSONATE
 
-IMPERSONATE = "chrome"
 
 async def verify_bohe_token(token: str) -> bool:
     if not token:
         return False
-    
-    url = "https://qd.x666.me/api/user/info"
-    
     try:
         async with requests.AsyncSession() as session:
-            r = await session.post(url, headers={
+            r: Response = await session.post("https://qd.x666.me/api/user/info", headers={
                 "Authorization": f"Bearer {token}"
             }, json={}, impersonate=IMPERSONATE)
+
+            print(f"BOHE_SIGN_TOKEN verification response:\n - status: {r.status_code}\n - body: {r.text}")
+
             if r.status_code == HTTPStatus.OK:
                 return r.json().get("success") == True
             return False
     except Exception:
-        return False
+        traceback.print_exc()
+
+    return False
 
 async def fetch_token_workflow(token: str | None = None, connect_token: str | None = None) -> tuple[str | None, str | None, str | None]:
     try:
@@ -40,7 +42,7 @@ async def fetch_token_workflow(token: str | None = None, connect_token: str | No
             if token is not None and connect_token is None:
                 connect_token, token = await (await ld_auth.login(token)).get_connect_token()
 
-            ld_auth.session.cookies.set("auth.session-token", connect_token, domain="connect.linux.do")
+            ld_auth.session.cookies.set(CONNECT_KEY, connect_token, domain="connect.linux.do")
 
             approve_url = await ld_auth.approve_oauth(auth_url)
             if not approve_url:
@@ -54,9 +56,8 @@ async def fetch_token_workflow(token: str | None = None, connect_token: str | No
                 token_list = parse_qs(urlparse(location).query).get("token")
                 if token_list:
                     return token_list[0], connect_token, token
-                    
+
     except Exception as e:
-        print(f"Token acquisition failed: {e}")
         traceback.print_exc()
 
     return None, connect_token, token
@@ -68,28 +69,28 @@ async def get_bohe_token(token: str = "") -> tuple[str | None, str | None, str |
     linux_do_token = tokens.get("linux_do_token")
 
     if bohe_token and await verify_bohe_token(bohe_token):
-        print("Using stored valid bohe_sign_token")
+        print("Using stored valid BOHE_SIGN_TOKEN")
         return bohe_token, linux_do_connect_token, linux_do_token
     
-    print("bohe_sign_token invalid!")
+    print("BOHE_SIGN_TOKEN invalid!")
 
     if linux_do_connect_token:
-        print("Attempting to refresh bohe_sign_token using stored linux_do_connect_token...")
-        new_bohe, new_ld_connect, new_ld = await fetch_token_workflow(connect_token=linux_do_connect_token)
+        print("Attempting to refresh BOHE_SIGN_TOKEN using stored LINUX_DO_CONNECT_TOKEN...")
+        new_bohe, new_ld_connect, new_ld = await  fetch_token_workflow(connect_token=linux_do_connect_token)
         if new_bohe:
-            print("Refreshed bohe_sign_token successfully via stored linux_do_connect_token")
+            print("Refreshed BOHE_SIGN_TOKEN successfully via stored LINUX_DO_CONNECT_TOKEN")
             save_tokens(new_bohe, new_ld_connect, new_ld)
             return new_bohe, new_ld_connect or linux_do_connect_token, new_ld or linux_do_token
-        print("Refresh bohe_sign_token via linux_do_connect_token failed")
-    
-    target_cookie = token if token else linux_do_token
+        print("Refresh BOHE_SIGN_TOKEN via LINUX_DO_CONNECT_TOKEN failed")
+
+    target_cookie = token or linux_do_token or os.getenv("LINUX_DO_TOKEN")
     
     if target_cookie:
-        print("Attempting full login with linux_do_token/cookie...")
+        print("Attempting full login with LINUX_DO_TOKEN...")
         new_bohe, new_ld_connect, new_ld = await fetch_token_workflow(token=target_cookie)
         
         if new_bohe:
-            print("Login successful")
+            print("Bohe sign login successful")
             save_tokens(new_bohe, new_ld_connect, new_ld)
             return new_bohe, new_ld_connect, new_ld
     else:

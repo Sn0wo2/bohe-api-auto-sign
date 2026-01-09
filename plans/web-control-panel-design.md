@@ -702,7 +702,7 @@ services:
 
 ### 7.1 签到 API 调用
 
-基于现有代码分析，薄荷签到 API 应位于 `https://qd.x666.me/api/`。签到模块需要实现：
+基于现有代码分析，薄荷签到 API 应位于 `https://up.x666.me/api/`。签到模块需要实现：
 
 ```python
 # bohe_sign/sign.py
@@ -712,7 +712,7 @@ from store.token import load_tokens
 from store.log import add_sign_log
 
 IMPERSONATE = "chrome"
-SIGN_API = "https://qd.x666.me/api/user/sign"
+SIGN_API = "https://up.x666.me/api/user/sign"
 
 async def do_sign() -> dict:
     """执行签到操作"""

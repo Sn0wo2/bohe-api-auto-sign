@@ -9,8 +9,8 @@ from store.token import load_tokens
 from store.log import add_sign_log, get_sign_stats
 
 IMPERSONATE = "chrome"
-SIGN_API = "https://qd.x666.me/api/user/sign"
-USER_INFO_API = "https://qd.x666.me/api/user/info"
+SIGN_API = "https://up.x666.me/api/user/sign"
+USER_INFO_API = "https://up.x666.me/api/user/info"
 
 
 async def do_sign(trigger: str = "manual") -> Dict[str, Any]:

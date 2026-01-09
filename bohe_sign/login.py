@@ -11,7 +11,7 @@ async def verify_bohe_token(token: str) -> bool:
     if not token:
         return False
     
-    url = "https://qd.x666.me/api/user/info"
+    url = "https://up.x666.me/api/user/info"
     
     try:
         async with requests.AsyncSession() as session:
@@ -28,7 +28,7 @@ async def fetch_token_workflow(token: str | None = None, connect_token: str | No
     try:
         async with requests.AsyncSession() as session:
             # 薄荷的恩情还不完 ✋😭✋
-            r: Response = await session.get("https://qd.x666.me/api/auth/login", impersonate=IMPERSONATE)
+            r: Response = await session.get("https://up.x666.me/api/auth/login", impersonate=IMPERSONATE)
             auth_url = r.json().get("authUrl")
             
             if not auth_url:

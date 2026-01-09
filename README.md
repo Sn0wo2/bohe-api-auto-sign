@@ -5,7 +5,7 @@
 ## 功能特点
 
 - 🔐 通过 [Linux.do Connect](https://connect.linux.do) OAuth 认证
-- 🎫 自动获取薄荷签到平台 (`qd.x666.me`) 的访问 Token
+- 🎫 自动获取薄荷签到平台 (`up.x666.me`) 的访问 Token
 - 💾 自动管理和刷新 Token，持久化存储到本地文件
 - 🔄 智能 Token 刷新机制，优先使用缓存的 Token
 - 🌐 Web 控制面板，可视化管理签到任务

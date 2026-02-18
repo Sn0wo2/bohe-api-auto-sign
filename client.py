@@ -23,9 +23,10 @@ class BoheClient:
 
     async def get_valid_token(self) -> Optional[str]:
         tokens = load_tokens()
-        sign_token = tokens.get("bohe_sign_token")
-        connect_token = tokens.get("linux_do_connect_token")
+        sign_token = tokens.get("bohe_sign_token") or os.getenv("BOHE_SIGN_TOKEN")
+        connect_token = tokens.get("linux_do_connect_token") or os.getenv("LINUX_DO_CONNECT_TOKEN")
         ld_token = tokens.get("linux_do_token") or os.getenv("LINUX_DO_TOKEN")
+
 
         # 1. Verify existing token
         if sign_token:

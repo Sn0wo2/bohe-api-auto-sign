@@ -1,0 +1,48 @@
+name: Sign
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run sign-in script
+        env:
+          BOHE_SIGN_TOKEN: ${{ secrets.BOHE_SIGN_TOKEN }}
+          LINUX_DO_CONNECT_TOKEN: ${{ secrets.LINUX_DO_CONNECT_TOKEN }}
+          LINUX_DO_TOKEN: ${{ secrets.LINUX_DO_TOKEN }}
+        run: poetry run python main.py
+
+      - name: Update Tokens to Secrets
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -f "data/token.json" ] && [ ! -z "$GH_TOKEN" ]; then
+            echo "Token update detected, syncing to secrets..."
+            BOHE_SIGN_TOKEN=$(poetry run python -c "import json; print(json.load(open('data/token.json')).get('bohe_sign_token', ''))")
+            LINUX_DO_CONNECT_TOKEN=$(poetry run python -c "import json; print(json.load(open('data/token.json')).get('linux_do_connect_token', ''))")
+            LINUX_DO_TOKEN=$(poetry run python -c "import json; print(json.load(open('data/token.json')).get('linux_do_token', ''))")
+            
+            [ ! -z "$BOHE_SIGN_TOKEN" ] && gh secret set BOHE_SIGN_TOKEN --body "$BOHE_SIGN_TOKEN"
+            [ ! -z "$LINUX_DO_CONNECT_TOKEN" ] && gh secret set LINUX_DO_CONNECT_TOKEN --body "$LINUX_DO_CONNECT_TOKEN"
+            [ ! -z "$LINUX_DO_TOKEN" ] && gh secret set LINUX_DO_TOKEN --body "$LINUX_DO_TOKEN"
+          else
+            echo "No token changes or GH_PAT missing."
+          fi

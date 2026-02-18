@@ -14,7 +14,6 @@ jobs:
   sign:
     runs-on: ubuntu-latest
     env:
-      # 获取当前尝试次数，默认为 1
       CURRENT_ATTEMPT: ${{ github.event.inputs.attempt || '1' }}
     steps:
       - uses: actions/checkout@v4
@@ -42,16 +41,32 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          SYNC_REPOS: ${{ secrets.SYNC_REPOS }}
         run: |
           if [ -f "data/token.json" ] && [ ! -z "$GH_TOKEN" ]; then
-            echo "Token update detected, syncing to secrets..."
+            echo "Token update detected, reading new tokens..."
             BOHE_SIGN_TOKEN=$(poetry run python -c "import json; print(json.load(open('data/token.json')).get('bohe_sign_token', ''))")
             LINUX_DO_CONNECT_TOKEN=$(poetry run python -c "import json; print(json.load(open('data/token.json')).get('linux_do_connect_token', ''))")
             LINUX_DO_TOKEN=$(poetry run python -c "import json; print(json.load(open('data/token.json')).get('linux_do_token', ''))")
             
+            echo "Updating current repository secrets..."
             [ ! -z "$BOHE_SIGN_TOKEN" ] && gh secret set BOHE_SIGN_TOKEN --body "$BOHE_SIGN_TOKEN"
             [ ! -z "$LINUX_DO_CONNECT_TOKEN" ] && gh secret set LINUX_DO_CONNECT_TOKEN --body "$LINUX_DO_CONNECT_TOKEN"
             [ ! -z "$LINUX_DO_TOKEN" ] && gh secret set LINUX_DO_TOKEN --body "$LINUX_DO_TOKEN"
+
+            
+            if [ ! -z "$SYNC_REPOS" ]; then
+              IFS=',' read -ra ADDR <<< "$SYNC_REPOS"
+              for repo in "${ADDR[@]}"; do
+                repo=$(echo $repo | xargs)
+                if [ ! -z "$repo" ]; then
+                  echo "Syncing tokens to remote repository: $repo..."
+                  [ ! -z "$BOHE_SIGN_TOKEN" ] && gh secret set BOHE_SIGN_TOKEN --repo "$repo" --body "$BOHE_SIGN_TOKEN"
+                  [ ! -z "$LINUX_DO_CONNECT_TOKEN" ] && gh secret set LINUX_DO_CONNECT_TOKEN --repo "$repo" --body "$LINUX_DO_CONNECT_TOKEN"
+                  [ ! -z "$LINUX_DO_TOKEN" ] && gh secret set LINUX_DO_TOKEN --repo "$repo" --body "$LINUX_DO_TOKEN"
+                fi
+              done
+            fi
           fi
 
       - name: Trigger New Action Run on Failure
@@ -61,5 +76,4 @@ jobs:
         run: |
           NEXT_ATTEMPT=$((CURRENT_ATTEMPT + 1))
           echo "Current attempt ($CURRENT_ATTEMPT) failed. Triggering new Action run (Attempt $NEXT_ATTEMPT)..."
-          # 触发当前工作流的新运行，并传入更新后的尝试次数
           gh workflow run sign.yml -f attempt=$NEXT_ATTEMPT

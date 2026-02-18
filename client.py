@@ -27,17 +27,29 @@ class BoheClient:
             try:
                 return await connect.get_connect_token()
             except Exception as e:
-                # 尝试通过 connect 内部的 session 进行诊断
-                session = getattr(connect, 'client', None) or getattr(connect, 'session', None)
+                print(f"\n[!!! DIAGNOSTIC START !!!]")
+                print(f"Error Type: {type(e).__name__}")
+                print(f"Error Message: {str(e)}")
+                
+                # 寻找内部 session
+                session = None
+                for attr in ['client', 'session', '_client', '_session']:
+                    if hasattr(connect, attr):
+                        session = getattr(connect, attr)
+                        print(f"Found session in attribute: {attr}")
+                        break
+                
                 if session:
                     try:
-                        # 检查 connect 首页的情况
+                        # 强行请求首页并抓取信息
                         resp = await session.get("https://connect.linux.do/", allow_redirects=True)
-                        self.logger.error(f"Diagnostic: Final URL: {resp.url}")
-                        self.logger.error(f"Diagnostic: Status Code: {resp.status_code}")
-                        self.logger.error(f"Diagnostic: Response Sample: {resp.text[:500]}")
+                        print(f"Diagnostic URL: {resp.url}")
+                        print(f"Diagnostic Status: {resp.status_code}")
+                        print(f"Diagnostic Body Snippet: {resp.text[:1000]}")
                     except Exception as diag_e:
-                        self.logger.error(f"Failed to get diagnostic info: {diag_e}")
+                        print(f"Diagnostic Request Failed: {diag_e}")
+                
+                print(f"[!!! DIAGNOSTIC END !!!]\n")
                 raise e
         except Exception as e:
             self.logger.error(f"LinuxDoConnect error: {str(e)}")

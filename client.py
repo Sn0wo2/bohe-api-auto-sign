@@ -23,9 +23,26 @@ class BoheClient:
             connect = LinuxDoConnect(token=ld_token)
             await connect.login()
             self.logger.info("Successfully logged in to linux.do")
-            return await connect.get_connect_token()
+            
+            try:
+                return await connect.get_connect_token()
+            except Exception as e:
+                # 尝试通过 connect 内部的 session 进行诊断
+                session = getattr(connect, 'client', None) or getattr(connect, 'session', None)
+                if session:
+                    try:
+                        # 检查 connect 首页的情况
+                        resp = await session.get("https://connect.linux.do/", allow_redirects=True)
+                        self.logger.error(f"Diagnostic: Final URL: {resp.url}")
+                        self.logger.error(f"Diagnostic: Status Code: {resp.status_code}")
+                        self.logger.error(f"Diagnostic: Response Sample: {resp.text[:500]}")
+                    except Exception as diag_e:
+                        self.logger.error(f"Failed to get diagnostic info: {diag_e}")
+                raise e
         except Exception as e:
-            self.logger.error(f"LinuxDoConnect error detail: {str(e)}")
+            self.logger.error(f"LinuxDoConnect error: {str(e)}")
+            import traceback
+            self.logger.error(traceback.format_exc())
             raise
 
 

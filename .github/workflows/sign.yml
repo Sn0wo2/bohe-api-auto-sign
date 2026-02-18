@@ -20,7 +20,7 @@ jobs:
         run: pip install poetry
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-root
 
       - name: Run sign-in script
         env:

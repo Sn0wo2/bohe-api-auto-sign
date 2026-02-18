@@ -9,8 +9,7 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "linux-do-connect-token (==0.0.3)",
-    "new-api-linux-do-oauth-token (>=0.0.0,<0.0.1)"
+    "linux-do-connect-token (>=0.0.4)"
 ]
 
 

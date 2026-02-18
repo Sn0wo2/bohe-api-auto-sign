@@ -8,15 +8,10 @@ TOKEN_FILE = "./data/token.json"
 
 def load_tokens() -> Dict[str, str]:
     if os.path.exists(TOKEN_FILE):
-        try:
-            with open(TOKEN_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-
+        with open(TOKEN_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
     initial_tokens = OrderedDict([
         ("bohe_sign_token", ""),
-        ("bohe_api_token", ""),
         ("linux_do_connect_token", ""),
         ("linux_do_token", "")
     ])
@@ -28,15 +23,12 @@ def load_tokens() -> Dict[str, str]:
 
 
 def save_tokens(bohe_sign_token: Optional[str] = None,
-                bohe_api_token: Optional[str] = None,
                 linux_do_connect_token: Optional[str] = None,
                 linux_do_token: Optional[str] = None) -> None:
     tokens = load_tokens()
 
     if bohe_sign_token:
         tokens["bohe_sign_token"] = bohe_sign_token
-    if bohe_api_token:
-        tokens["bohe_api_token"] = bohe_api_token
     if linux_do_connect_token:
         tokens["linux_do_connect_token"] = linux_do_connect_token
     if linux_do_token:

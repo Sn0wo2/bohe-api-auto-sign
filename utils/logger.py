@@ -27,10 +27,9 @@ def setup_logger(name: str = "bohe-api-auto-sign", log_dir: str = "./data/logs")
                 shutil.copyfileobj(f_in, f_out)
         os.remove(log_file)
 
-
     formatter = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(message)s',
-     datefmt='%Y-%m-%d %H:%M:%S'
+        datefmt='%Y-%m-%d %H:%M:%S'
     )
 
     console_handler = logging.StreamHandler(sys.stdout)

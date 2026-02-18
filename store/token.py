@@ -1,6 +1,5 @@
 import json
 import os
-from collections import OrderedDict
 from typing import Dict, Optional
 
 TOKEN_FILE = "./data/token.json"
@@ -10,11 +9,11 @@ def load_tokens() -> Dict[str, str]:
     if os.path.exists(TOKEN_FILE):
         with open(TOKEN_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    initial_tokens = OrderedDict([
-        ("bohe_sign_token", ""),
-        ("linux_do_connect_token", ""),
-        ("linux_do_token", "")
-    ])
+    initial_tokens = {
+        "bohe_sign_token": "",
+        "linux_do_connect_token": "",
+        "linux_do_token": ""
+    }
 
     os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
     with open(TOKEN_FILE, "w", encoding="utf-8") as f:

@@ -18,8 +18,16 @@ class BoheClient:
     async def _get_connect_token(self, ld_token: Optional[str]) -> tuple[str, Optional[str]]:
         if not ld_token:
             raise ValueError("LINUX_DO_TOKEN is required to refresh connect token")
-        self.logger.info("Refreshing connect token...")
-        return await (await LinuxDoConnect(token=ld_token).login()).get_connect_token()
+        self.logger.info(f"Refreshing connect token with linux_do_token (ending in ...{ld_token[-5:] if ld_token else 'None'})")
+        try:
+            connect = LinuxDoConnect(token=ld_token)
+            await connect.login()
+            self.logger.info("Successfully logged in to linux.do")
+            return await connect.get_connect_token()
+        except Exception as e:
+            self.logger.error(f"LinuxDoConnect error detail: {str(e)}")
+            raise
+
 
     async def get_valid_token(self) -> Optional[str]:
         tokens = load_tokens()

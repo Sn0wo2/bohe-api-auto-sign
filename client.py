@@ -18,12 +18,13 @@ class BoheClient:
     async def _get_connect_token(self, ld_token: Optional[str]) -> tuple[str, Optional[str]]:
         if not ld_token:
             raise ValueError("LINUX_DO_TOKEN is required to refresh connect token")
-        self.logger.info(f"Refreshing connect token with linux_do_token (ending in ...{ld_token[-5:] if ld_token else 'None'})")
+        self.logger.info(
+            f"Refreshing connect token with linux_do_token (ending in ...{ld_token[-5:] if ld_token else 'None'})")
         try:
             connect = LinuxDoConnect(token=ld_token)
             await connect.login()
             self.logger.info("Successfully logged in to linux.do")
-            
+
             try:
                 connect_token, _ = await connect.get_connect_token()
                 self.logger.info("Successfully obtained connect token from linux.do")
@@ -35,13 +36,11 @@ class BoheClient:
             self.logger.error(f"LinuxDo login flow failed: {str(e)}")
             raise
 
-
     async def get_valid_token(self) -> Optional[str]:
         tokens = load_tokens()
         sign_token = tokens.get("bohe_sign_token") or os.getenv("BOHE_SIGN_TOKEN")
         connect_token = tokens.get("linux_do_connect_token") or os.getenv("LINUX_DO_CONNECT_TOKEN")
         ld_token = tokens.get("linux_do_token") or os.getenv("LINUX_DO_TOKEN")
-
 
         # 1. Verify existing token
         if sign_token:
@@ -52,21 +51,20 @@ class BoheClient:
                 return sign_token
             self.logger.warning("Stored Bohe sign token is invalid/expired, attempting to refresh...")
 
-
         # 2. Login flow with retry & fallback
         for attempt in range(1, 4):
             try:
                 if attempt > 1:
                     self.logger.info(f"Retrying token refresh (attempt {attempt}/3)...")
-                
+
                 # 如果没有 connect_token 或者是在重试中，尝试刷新它
                 if not connect_token or attempt > 1:
                     connect_token, ld_token = await self._get_connect_token(ld_token)
 
                 new_token = await self.sign_client.get_token(connect_token)
-                
-                save_tokens(bohe_sign_token=new_token, 
-                            linux_do_connect_token=connect_token, 
+
+                save_tokens(bohe_sign_token=new_token,
+                            linux_do_connect_token=connect_token,
                             linux_do_token=ld_token)
                 self.logger.info("Successfully obtained and saved new token")
                 return new_token
@@ -79,7 +77,6 @@ class BoheClient:
                 await asyncio.sleep(attempt * 2)
         return None
 
-
     async def sign(self, token: str) -> bool:
         try:
             # Check status
@@ -91,7 +88,7 @@ class BoheClient:
                     self.logger.info("Already checked in today (confirmed by server)")
                     return True
                 self.logger.info("Ready to sign in, performing spin...")
-            
+
             # Perform spin
             r = await self.sign_client.sign(token)
 

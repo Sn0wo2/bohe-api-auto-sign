@@ -42,7 +42,6 @@ class BoheClient:
         connect_token = tokens.get("linux_do_connect_token") or os.getenv("LINUX_DO_CONNECT_TOKEN")
         ld_token = tokens.get("linux_do_token") or os.getenv("LINUX_DO_TOKEN")
 
-        # 1. Verify existing token
         if sign_token:
             self.logger.info("Verifying existing Bohe sign token...")
             valid, _ = await self.sign_client.verify_token(sign_token)
@@ -51,13 +50,11 @@ class BoheClient:
                 return sign_token
             self.logger.warning("Stored Bohe sign token is invalid/expired, attempting to refresh...")
 
-        # 2. Login flow with retry & fallback
         for attempt in range(1, 4):
             try:
                 if attempt > 1:
                     self.logger.info(f"Retrying token refresh (attempt {attempt}/3)...")
 
-                # 如果没有 connect_token 或者是在重试中，尝试刷新它
                 if not connect_token or attempt > 1:
                     connect_token, ld_token = await self._get_connect_token(ld_token)
 
@@ -79,7 +76,6 @@ class BoheClient:
 
     async def sign(self, token: str) -> bool:
         try:
-            # Check status
             self.logger.info("Checking check-in status...")
             status_r = await self.sign_client.get_checkin_status(token)
             if status_r.status_code == HTTPStatus.OK:
@@ -89,7 +85,6 @@ class BoheClient:
                     return True
                 self.logger.info("Ready to sign in, performing spin...")
 
-            # Perform spin
             r = await self.sign_client.sign(token)
 
             if r.status_code == HTTPStatus.OK:

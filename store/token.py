@@ -1,8 +1,9 @@
 import json
 import os
 from typing import Dict, Optional
+from utils.paths import DATA_DIR
 
-TOKEN_FILE = "./data/token.json"
+TOKEN_FILE = os.path.join(DATA_DIR, "token.json")
 
 
 def load_tokens() -> Dict[str, str]:
@@ -10,9 +11,9 @@ def load_tokens() -> Dict[str, str]:
         try:
             with open(TOKEN_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
+        except (json.JSONDecodeError, OSError):
             pass
-            
+
     initial_tokens = {
         "bohe_sign_token": "",
         "linux_do_connect_token": "",
@@ -20,14 +21,13 @@ def load_tokens() -> Dict[str, str]:
     }
 
     has_env = any(os.getenv(k.upper()) for k in initial_tokens.keys())
-    
+
     if not has_env:
         os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
         with open(TOKEN_FILE, "w", encoding="utf-8") as f:
             json.dump(initial_tokens, f, indent=4, ensure_ascii=False)
-            
-    return initial_tokens
 
+    return initial_tokens
 
 
 def save_tokens(bohe_sign_token: Optional[str] = None,

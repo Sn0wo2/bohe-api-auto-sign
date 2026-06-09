@@ -44,6 +44,9 @@ class BoheClient:
         connect_token = connect_token or os.getenv("LINUX_DO_CONNECT_TOKEN")
         ld_token = ld_token or os.getenv("LINUX_DO_TOKEN")
 
+        self.logger.debug(f"Token state: auth_token={'set' if auth_token else 'empty'}, connect_token={'set' if connect_token else 'empty'}, ld_token={'set' if ld_token else 'empty'}")
+        self.logger.debug(f"Token source: connect_token={'file' if connect_token_value else 'env' if connect_token else 'none'}, ld_token={'file' if ld_token_value else 'env' if ld_token else 'none'}")
+
         if isinstance(auth_token, str) and auth_token:
             self.logger.info("Verifying existing Bohe session (auth_token)...")
             self.signin_client.import_session_cookies(auth_token)
@@ -52,6 +55,7 @@ class BoheClient:
                 self.logger.info("Existing Bohe session cookies are still valid")
                 return
             self.logger.warning("Stored auth_token is invalid/expired, attempting to refresh...")
+            self.logger.debug(f"Session verification result: valid={valid}")
 
         for attempt in range(1, 4):
             try:
@@ -59,7 +63,10 @@ class BoheClient:
                     self.logger.info(f"Retrying Bohe session refresh (attempt {attempt}/3)...")
 
                 if not connect_token:
+                    self.logger.debug("No connect_token available, refreshing from linux_do_token")
                     connect_token, ld_token = await self._get_connect_token(ld_token)
+                else:
+                    self.logger.debug("Reusing existing connect_token")
 
                 await self.signin_client.authenticate(connect_token)
 
@@ -75,7 +82,9 @@ class BoheClient:
                 self.logger.info("Successfully obtained and saved auth_token")
                 return
             except ValueError as e:
-                if "rate limited" in str(e).lower():
+                error_msg = str(e)
+                self.logger.debug(f"ValueError caught: {error_msg}")
+                if "rate limited" in error_msg.lower():
                     if attempt == 3:
                         self.logger.error("All 3 attempts failed (rate limited). Giving up.")
                         raise
@@ -85,6 +94,7 @@ class BoheClient:
                     )
                     await asyncio.sleep(backoff)
                 else:
+                    self.logger.error(f"OAuth approval failed: {error_msg}")
                     raise
             except Exception:
                 self.logger.warning(f"Bohe session refresh attempt {attempt} failed", exc_info=True)

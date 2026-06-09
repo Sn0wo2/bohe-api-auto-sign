@@ -37,13 +37,11 @@ async def test():
         bare_str = 'OK' if bare_ok else 'X'
         authed_str = 'OK' if authed_ok else 'X'
         if bare_ok or authed_ok:
-            results.append((fp, bare_ok, authed_ok))
+            results.append((fp, bare_str, authed_str))
         print(f'{fp:22s} bare={bare_str}  authed={authed_str}  status={status_code}')
     print()
     print('=' * 25)
-    for fp, bare, authed in results:
-        bare_label = 'OK' if bare else 'X'
-        authed_label = 'OK' if authed else 'X'
+    for fp, bare_label, authed_label in results:
         print(f'  {fp:22s} bare={bare_label}  authed={authed_label}')
 
 asyncio.run(test())

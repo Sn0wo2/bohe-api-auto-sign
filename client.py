@@ -58,7 +58,7 @@ class BoheClient:
                 if attempt > 1:
                     self.logger.info(f"Retrying Bohe session refresh (attempt {attempt}/3)...")
 
-                if not connect_token or attempt > 1:
+                if not connect_token:
                     connect_token, ld_token = await self._get_connect_token(ld_token)
 
                 await self.signin_client.authenticate(connect_token)
@@ -79,7 +79,7 @@ class BoheClient:
                     if attempt == 3:
                         self.logger.error("All 3 attempts failed (rate limited). Giving up.")
                         raise
-                    backoff = min(300, 30 * (2 ** (attempt - 1)) + random.uniform(0, 10))
+                    backoff = min(600, 60 * (2 ** (attempt - 1)) + random.uniform(0, 30))
                     self.logger.warning(
                         f"Rate limited on attempt {attempt}. Backing off {backoff:.0f}s before retry..."
                     )

@@ -5,34 +5,57 @@ from utils.paths import DATA_DIR
 
 TOKEN_FILE = os.path.join(DATA_DIR, "token.json")
 
-_TOKEN_KEYS = ("bohe_sign_token", "linux_do_connect_token", "linux_do_token")
+TokenValue = str
 
+_TOKEN_KEYS = (
+    "bohe_session_cookies",
+    "linux_do_connect_token",
+    "linux_do_token",
+)
 
-def load_tokens() -> dict[str, str]:
-    if os.path.exists(TOKEN_FILE):
+def _empty_tokens() -> dict[str, TokenValue]:
+    return {key: "" for key in _TOKEN_KEYS}
+
+def load_tokens() -> dict[str, TokenValue]:
+    tokens = _empty_tokens()
+    file_exists = os.path.exists(TOKEN_FILE)
+
+    if file_exists:
         try:
             with open(TOKEN_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                raw_tokens = json.load(f)
         except (json.JSONDecodeError, OSError):
-            pass
+            raw_tokens = {}
 
-    init_tokens = {k: "" for k in _TOKEN_KEYS}
+        if isinstance(raw_tokens, dict):
+            for key in _TOKEN_KEYS:
+                value = raw_tokens.get(key)
+                if isinstance(value, str) and value:
+                    tokens[key] = value
 
-    if not any(os.getenv(k.upper()) for k in _TOKEN_KEYS):
+    # Env overrides
+    env_session_cookies = os.getenv("BOHE_SESSION_COOKIES")
+    if env_session_cookies:
+        tokens["bohe_session_cookies"] = env_session_cookies
+
+    for key in _TOKEN_KEYS:
+        if key == "bohe_session_cookies":
+            continue
+        env_value = os.getenv(key.upper())
+        if env_value:
+            tokens[key] = env_value
+
+    if not file_exists and not any(tokens.values()):
         os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
         with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-            json.dump(init_tokens, f, indent=4, ensure_ascii=False)
+            json.dump(tokens, f, indent=4, ensure_ascii=False)
 
-    return init_tokens
+    return tokens
 
 
-def save_tokens(**tokens: str) -> None:
+def save_tokens(**tokens: TokenValue | None) -> None:
     current = load_tokens()
-    current.update({k: v for k, v in tokens.items() if v})
+    current.update({k: v for k, v in tokens.items() if k in _TOKEN_KEYS and v is not None})
     os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
     with open(TOKEN_FILE, "w", encoding="utf-8") as f:
         json.dump(current, f, indent=4, ensure_ascii=False)
-
-
-def get_token(key: str) -> str | None:
-    return load_tokens().get(key)

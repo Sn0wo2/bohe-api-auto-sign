@@ -1,4 +1,5 @@
 import re
+import re
 import time
 from http import HTTPStatus
 from urllib.parse import urljoin
@@ -61,6 +62,10 @@ class BoheSignClient:
     async def signin(self) -> requests.Response:
         return await self.session.post(
             f"{self.BASE_URL}/api/checkin/spin",
+            headers={
+                "Origin": self.BASE_URL,
+                "Referer": f"{self.BASE_URL}/",
+            },
             impersonate=IMPERSONATE,
         )
 
